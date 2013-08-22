@@ -1,0 +1,15 @@
+lib/libxio.so
+lib/libxio.so.0.1.0
+tests/xiotest
+include/xio/sysconfig.h
+*.a
+*.so
+Makefile
+cmake_install.cmake
+CMakeFiles
+sandbox
+.*.swp
+CMakeCache.txt
+examples/xiocp
+examples/tcp-client
+examples/echo-server
