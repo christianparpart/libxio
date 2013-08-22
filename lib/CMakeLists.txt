@@ -18,6 +18,8 @@ add_library(xio SHARED
 	SocketDriver.cpp
 	Socket.cpp
 	ServerSocket.cpp
+	InetServer.cpp
+	UnixServer.cpp
 	ChunkedBuffer.cpp
 )
 

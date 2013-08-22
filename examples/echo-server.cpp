@@ -56,8 +56,9 @@ void Server::accept(Socket* client, ServerSocket* /*local*/)
 		} else {
 			char buf[1024];
 			ssize_t n = client->read(buf, sizeof(buf));
-			printf("Client read %d-th chunk. %s", ++*i, buf); // buf is to contain \r\n (from telnet)
 			if (n > 0) {
+				buf[n] = 0;
+				printf("Client read %d-th chunk. %s", ++*i, buf); // buf is to contain \r\n (from telnet)
 				client->write(buf, n);  // we ignore any kind of write errors here
 				client->restart();      // restart I/O timer
 			} else if (n == 0) {
