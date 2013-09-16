@@ -9,18 +9,23 @@ add_definitions(
 add_definitions(-fvisibility=hidden -fvisibility-inlines-hidden -DBUILD_XIO=1)
 
 add_library(xio SHARED
-	IPAddress.cpp
+	Buffer.cpp
+	Stream.cpp
+	Pipe.cpp
+	BufferStream.cpp
+	ChunkedStream.cpp
 	TimeSpan.cpp
 	DateTime.cpp
-	Stream.cpp
-	MemoryBuffer.cpp
-	KernelBuffer.cpp
+	IPAddress.cpp
+	FileStream.cpp
+	File.cpp
 	SocketDriver.cpp
 	Socket.cpp
 	ServerSocket.cpp
 	InetServer.cpp
 	UnixServer.cpp
-	ChunkedBuffer.cpp
+	Filter.cpp
+	FilterStream.cpp
 )
 
 target_link_libraries(xio

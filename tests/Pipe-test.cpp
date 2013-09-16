@@ -7,22 +7,22 @@
  */
 
 #include <gtest/gtest.h>
-#include <xio/KernelBuffer.h>
+#include <xio/Pipe.h>
 
 using namespace xio;
 
-TEST(KernelBufferTest, Empty)
+TEST(PipeTest, Empty)
 {
-	KernelBuffer pp;
+	Pipe pp;
 	ASSERT_TRUE(pp.empty());
 	ASSERT_FALSE(!pp.empty());
 	ASSERT_EQ(0, pp.size());
 }
 
-TEST(KernelBufferTest, Pass)
+TEST(PipeTest, Pass)
 {
 	std::string msg("Hello");
-	KernelBuffer pp;
+	Pipe pp;
 
 	// writing to pipe
 	ASSERT_EQ(5, pp.write(msg.data(), msg.size()));

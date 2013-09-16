@@ -11,11 +11,11 @@
 
 namespace xio {
 
-class XIO_API ChunkedBuffer : public Stream
+class XIO_API ChunkedStream : public Stream
 {
 public:
-	ChunkedBuffer();
-	~ChunkedBuffer();
+	ChunkedStream();
+	~ChunkedStream();
 
 	virtual bool empty() const;
 	virtual size_t size() const;
@@ -23,14 +23,14 @@ public:
 	// write to buffer
 	virtual ssize_t write(const void* buf, size_t size);
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode);
-	virtual ssize_t write(KernelBuffer* pipe, size_t size, Mode mode);
+	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode);
 	virtual ssize_t write(int fd, off_t *fd_off, size_t size);
 	virtual ssize_t write(int fd, size_t size);
 
 	// read from buffer
 	virtual ssize_t read(void* buf, size_t size);
 	virtual ssize_t read(Socket* socket, size_t size);
-	virtual ssize_t read(KernelBuffer* socket, size_t size);
+	virtual ssize_t read(Pipe* socket, size_t size);
 	virtual ssize_t read(int fd, size_t size);
 	virtual ssize_t read(int fd, off_t *fd_off, size_t size);
 	virtual int read();
@@ -48,11 +48,11 @@ private:
 };
 
 // {{{ inlines
-inline ChunkedBuffer::ChunkedBuffer() :
+inline ChunkedStream::ChunkedStream() :
 	chunks_()
 {}
 
-inline ChunkedBuffer::~ChunkedBuffer()
+inline ChunkedStream::~ChunkedStream()
 {
 	for (auto chunk: chunks_)
 		delete chunk;

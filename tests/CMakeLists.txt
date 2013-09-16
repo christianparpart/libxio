@@ -8,6 +8,7 @@ if(BUILD_TESTS)
 
 add_executable(xiotest xiotest.cpp
 	Pipe-test.cpp
+	Buffer-test.cpp
 )
 
 target_link_libraries(xiotest xio gtest)

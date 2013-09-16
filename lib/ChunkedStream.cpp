@@ -1,13 +1,13 @@
-#include <xio/ChunkedBuffer.h>
-#include <xio/MemoryBuffer.h>
-#include <xio/KernelBuffer.h>
+#include <xio/ChunkedStream.h>
+#include <xio/Pipe.h>
+#include <xio/BufferStream.h>
 #include <xio/StreamVisitor.h>
 
 #include <fcntl.h>
 
 namespace xio {
 
-bool ChunkedBuffer::empty() const
+bool ChunkedStream::empty() const
 {
 	if (chunks_.empty())
 		return true;
@@ -15,7 +15,7 @@ bool ChunkedBuffer::empty() const
 	return chunks_.front()->size() == 0;
 }
 
-size_t ChunkedBuffer::size() const
+size_t ChunkedStream::size() const
 {
 	size_t result = 0;
 
@@ -25,7 +25,7 @@ size_t ChunkedBuffer::size() const
 	return result;
 }
 
-ssize_t ChunkedBuffer::write(const void* buf, size_t size)
+ssize_t ChunkedStream::write(const void* buf, size_t size)
 {
 	if (auto chunk = buffer(size))
 		return chunk->write(buf, size);
@@ -33,12 +33,12 @@ ssize_t ChunkedBuffer::write(const void* buf, size_t size)
 	return -1;
 }
 
-ssize_t ChunkedBuffer::write(Socket* socket, size_t size, Mode mode)
+ssize_t ChunkedStream::write(Socket* socket, size_t size, Mode mode)
 {
 	return 0; // TODO
 }
 
-ssize_t ChunkedBuffer::write(KernelBuffer* pp, size_t size, Mode mode)
+ssize_t ChunkedStream::write(Pipe* pp, size_t size, Mode mode)
 {
 	if (mode == Stream::MOVE) {
 		if (auto chunk = pipe(size)) {
@@ -53,7 +53,7 @@ ssize_t ChunkedBuffer::write(KernelBuffer* pp, size_t size, Mode mode)
 	return -1;
 }
 
-ssize_t ChunkedBuffer::write(int fd, size_t size)
+ssize_t ChunkedStream::write(int fd, size_t size)
 {
 	if (auto chunk = pipe(size))
 		return chunk->write(fd, size);
@@ -61,7 +61,7 @@ ssize_t ChunkedBuffer::write(int fd, size_t size)
 	return -1;
 }
 
-ssize_t ChunkedBuffer::write(int fd, off_t *fd_off, size_t size)
+ssize_t ChunkedStream::write(int fd, off_t *fd_off, size_t size)
 {
 	if (auto chunk = buffer(size))
 		return chunk->write(fd, fd_off, size);
@@ -69,17 +69,17 @@ ssize_t ChunkedBuffer::write(int fd, off_t *fd_off, size_t size)
 	return -1;
 }
 
-ssize_t ChunkedBuffer::read(void* buf, size_t size)
+ssize_t ChunkedStream::read(void* buf, size_t size)
 {
 	return 0;
 }
 
-ssize_t ChunkedBuffer::read(Socket* socket, size_t size)
+ssize_t ChunkedStream::read(Socket* socket, size_t size)
 {
 	return 0; // TODO
 }
 
-ssize_t ChunkedBuffer::read(KernelBuffer* pp, size_t size)
+ssize_t ChunkedStream::read(Pipe* pp, size_t size)
 {
 	ssize_t result = 0;
 	while (!empty() && size > 0) {
@@ -102,7 +102,7 @@ ssize_t ChunkedBuffer::read(KernelBuffer* pp, size_t size)
 	return result;
 }
 
-ssize_t ChunkedBuffer::read(int fd, size_t size)
+ssize_t ChunkedStream::read(int fd, size_t size)
 {
 	size_t result = 0;
 	while (!empty() && size > 0) {
@@ -126,12 +126,12 @@ ssize_t ChunkedBuffer::read(int fd, size_t size)
 	return result;
 }
 
-ssize_t ChunkedBuffer::read(int fd, off_t *fd_off, size_t size)
+ssize_t ChunkedStream::read(int fd, off_t *fd_off, size_t size)
 {
 	return 0;
 }
 
-int ChunkedBuffer::read()
+int ChunkedStream::read()
 {
 	if (!empty()) {
 		auto chunk = chunks_.front();
@@ -146,23 +146,23 @@ int ChunkedBuffer::read()
 	return -1;
 }
 
-void ChunkedBuffer::pop_front()
+void ChunkedStream::pop_front()
 {
 	delete chunks_.front();
 	chunks_.pop_front();
 }
 
-Stream* ChunkedBuffer::buffer(size_t size)
+Stream* ChunkedStream::buffer(size_t size)
 {
 	if (!chunks_.empty()) {
-		if (auto tail = dynamic_cast<MemoryBuffer*>(chunks_.back())) {
+		if (auto tail = dynamic_cast<BufferStream*>(chunks_.back())) {
 			if (tail->size() < tail->capacity()) {
 				return tail;
 			}
 		}
 	}
 
-	if (auto c = new MemoryBuffer(size)) {
+	if (auto c = new BufferStream(size)) {
 		chunks_.push_back(c);
 		return c;
 	}
@@ -170,16 +170,16 @@ Stream* ChunkedBuffer::buffer(size_t size)
 	return nullptr;
 }
 
-Stream* ChunkedBuffer::pipe(size_t size)
+Stream* ChunkedStream::pipe(size_t size)
 {
 	if (!chunks_.empty()) {
-		if (auto tail = dynamic_cast<KernelBuffer*>(chunks_.back())) {
+		if (auto tail = dynamic_cast<Pipe*>(chunks_.back())) {
 			// TODO ensure size' capacity availability
 			return tail;
 		}
 	}
 
-	if (auto c = new KernelBuffer(O_NONBLOCK | O_CLOEXEC)) {
+	if (auto c = new Pipe(O_NONBLOCK | O_CLOEXEC)) {
 		chunks_.push_back(c);
 		return c;
 	}
@@ -187,7 +187,7 @@ Stream* ChunkedBuffer::pipe(size_t size)
 	return nullptr;
 }
 
-void ChunkedBuffer::accept(StreamVisitor& visitor)
+void ChunkedStream::accept(StreamVisitor& visitor)
 {
 	visitor.visit(*this);
 }

@@ -4,19 +4,19 @@
 
 namespace xio {
 
-class MemoryBuffer;
-class KernelBuffer;
-class ChunkedBuffer;
-class File;
+class Pipe;
+class BufferStream;
+class ChunkedStream;
+class FileStream;
 class Socket;
 
 class XIO_API StreamVisitor
 {
 public:
-	virtual void visit(MemoryBuffer&) = 0;
-	virtual void visit(KernelBuffer&) = 0;
-	virtual void visit(ChunkedBuffer&) = 0;
-	virtual void visit(File&) = 0;
+	virtual void visit(Pipe&) = 0;
+	virtual void visit(BufferStream&) = 0;
+	virtual void visit(ChunkedStream&) = 0;
+	virtual void visit(FileStream&) = 0;
 	virtual void visit(Socket&) = 0;
 };
 

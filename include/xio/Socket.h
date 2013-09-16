@@ -51,12 +51,14 @@ public:
 	void restart();
 	void stop();
 
+	State state() const { return state_; }
+
 	// {{{ stream impl
 	virtual size_t size() const;
 
 	virtual ssize_t read(void* buf, size_t size);
 	virtual ssize_t read(Socket* socket, size_t size);
-	virtual ssize_t read(KernelBuffer* pipe, size_t size);
+	virtual ssize_t read(Pipe* pipe, size_t size);
 	virtual ssize_t read(int fd, size_t size);
 	virtual ssize_t read(int fd, off_t *fd_off, size_t size);
 	virtual int read();
@@ -64,7 +66,7 @@ public:
 	using Stream::write;
 	virtual ssize_t write(const void* buf, size_t size);
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode = Stream::MOVE);
-	virtual ssize_t write(KernelBuffer* pipe, size_t size, Mode mode = Stream::MOVE);
+	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode = Stream::MOVE);
 	virtual ssize_t write(int fd, off_t *fd_off, size_t size);
 	virtual ssize_t write(int fd, size_t size);
 

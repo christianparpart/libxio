@@ -1,10 +1,35 @@
 
 # libxio
 
+## Class Diagram
+
+- DateTime
+- TimeSpan
+- BufferBase<T>
+  - BufferRef     (unmanaged buffer)
+  - Buffer        (managed buffer)
+  - BufferView    (safe sub-view into a managed buffer)
+- File
+- FileMgr
+- SocketDriver
+- ServerSocket
+  - InetServer
+  - UnixServer
+- Stream
+  - Socket
+  - Pipe
+  - BufferStream
+  - ChunkedStream
+  - FilterStream
+- Filter
+  - NullFilter
+  - ...
+
 ## Byte Buffers API
 
 - `Buffer`
 - `BufferRef`
+- `BufferView`
 
 ## Chunked Buffers API
 
@@ -60,12 +85,12 @@ some kernel system calls.
 - `Stream`
   - `FileStream` - local file
   - `Socket` - network socket
-  - `KernelBuffer` - system pipe
-  - `MemoryBuffer` - memory buffer
+  - `Pipe` - system pipe (aka KernelBuffer)
+  - `BufferStream` - memory buffer
   - `OpaqueBuffer`
 - `StreamVisitor`
 - `File`
-- `FileService`
+- `FileMgr`
 
 ## The Splice Efford
 

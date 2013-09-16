@@ -9,8 +9,7 @@ namespace xio {
 
 class Socket;
 class MemoryBuffer;
-class KernelBuffer;
-class File;
+class Pipe;
 class StreamVisitor;
 
 class XIO_API Stream
@@ -31,14 +30,14 @@ public:
 
 	virtual ssize_t read(void* buf, size_t size) = 0;
 	virtual ssize_t read(Socket* socket, size_t size) = 0;
-	virtual ssize_t read(KernelBuffer* pipe, size_t size) = 0;
+	virtual ssize_t read(Pipe* pipe, size_t size) = 0;
 	virtual ssize_t read(int fd, size_t size) = 0;
 	virtual ssize_t read(int fd, off_t *fd_off, size_t size) = 0;
 	virtual int read() = 0;
 
 	virtual ssize_t write(const void* buf, size_t size) = 0;
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode = Stream::MOVE) = 0;
-	virtual ssize_t write(KernelBuffer* pipe, size_t size, Mode mode = Stream::MOVE) = 0;
+	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode = Stream::MOVE) = 0;
 	virtual ssize_t write(int fd, off_t *fd_off, size_t size) = 0;
 	virtual ssize_t write(int fd, size_t size) = 0;
 	virtual ssize_t write(const char* str);

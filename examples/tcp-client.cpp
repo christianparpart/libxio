@@ -1,9 +1,7 @@
 #include <xio/Stream.h>
-#include <xio/ChunkedBuffer.h>
-#include <xio/MemoryBuffer.h>
-#include <xio/KernelBuffer.h>
 #include <xio/Socket.h>
 #include <xio/IPAddress.h>
+#include <xio/File.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -16,10 +14,16 @@ int main(int argc, const char* argv[])
 {
 	ev::loop_ref loop(ev::default_loop(0));
 
+	// per-thread initialization
+	File::init(loop);
+
 	Socket socket(loop);
 	Socket::State ss = socket.open(IPAddress("127.0.0.1"), 8080);
-	const char* sstr[] = { "Closed", "Connecting", "Handshake", "Operational" };
-	printf("** socket state: %s\n", sstr[(int)ss]);
+
+	if (ss == Socket::State::Closed) {
+		std::printf("Could not connect. %s\n", strerror(errno));
+		return 1;
+	}
 
 	socket.on(Socket::CONNECTED, TimeSpan::fromSeconds(10), [&](int re) {
 		if (re & Socket::TIMEOUT) {
@@ -65,6 +69,9 @@ int main(int argc, const char* argv[])
 	});
 
 	loop.run();
+
+	// cleanup
+	File::deinit();
 
 	return 0;
 }

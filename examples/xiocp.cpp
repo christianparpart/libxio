@@ -1,7 +1,7 @@
 #include <xio/Stream.h>
-#include <xio/ChunkedBuffer.h>
-#include <xio/MemoryBuffer.h>
-#include <xio/KernelBuffer.h>
+#include <xio/ChunkedStream.h>
+#include <xio/BufferStream.h>
+#include <xio/Pipe.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

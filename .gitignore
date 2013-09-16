@@ -13,3 +13,4 @@ CMakeCache.txt
 examples/xiocp
 examples/tcp-client
 examples/echo-server
+examples/filter

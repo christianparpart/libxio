@@ -1,6 +1,6 @@
 #include <xio/Socket.h>
 #include <xio/IPAddress.h>
-#include <xio/KernelBuffer.h>
+#include <xio/Pipe.h>
 #include <xio/StreamVisitor.h>
 #include <sys/sendfile.h>
 #include <sys/types.h>
@@ -273,7 +273,7 @@ ssize_t Socket::read(Socket* socket, size_t size)
 	return 0;
 }
 
-ssize_t Socket::read(KernelBuffer* pipe, size_t size)
+ssize_t Socket::read(Pipe* pipe, size_t size)
 {
 	return 0;
 }
@@ -307,7 +307,7 @@ ssize_t Socket::write(Socket* socket, size_t size, Mode mode)
 	return 0;
 }
 
-ssize_t Socket::write(KernelBuffer* pipe, size_t size, Mode mode)
+ssize_t Socket::write(Pipe* pipe, size_t size, Mode mode)
 {
 	return splice(
 		pipe->readFd(), nullptr,
