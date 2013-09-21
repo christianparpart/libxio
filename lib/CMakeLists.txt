@@ -25,8 +25,8 @@ add_library(xio SHARED
 	InetServer.cpp
 	UnixServer.cpp
 	Filter.cpp
-	FilterStream.cpp
 )
+#	FilterStream.cpp
 
 target_link_libraries(xio
 	pthread

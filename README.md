@@ -1,35 +1,37 @@
-
 # libxio
+
+## Motivation
+
+The idea behind libxio is, to basically privde a better I/O subsystem as I have
+designed so far for x0. However, this included also copying (and partly redesigning)
+some other parts of the base APIs over; reason enough to make it a fully featured
+base framework an application can depend on.
 
 ## Class Diagram
 
-- DateTime
-- TimeSpan
-- BufferBase<T>
-  - BufferRef     (unmanaged buffer)
-  - Buffer        (managed buffer)
-  - BufferView    (safe sub-view into a managed buffer)
-- File
-- FileMgr
-- SocketDriver
-- ServerSocket
-  - InetServer
-  - UnixServer
-- Stream
-  - Socket
-  - Pipe
-  - BufferStream
-  - ChunkedStream
-  - FilterStream
-- Filter
-  - NullFilter
+- `BufferRef` - unmanaged immutable buffer
+- `Buffer` - managed mutable buffer
+- `BufferView` - safe sub-view into a managed mutable buffer
+- `FixedBuffer` - unmanaged mutable buffer
+- `DateTime` - date/time
+- `TimeSpan` - a time span / duration
+- `File` - regular file object
+- `FileMgr` - cache/lookup manager for file objects
+- `SocketDriver`
+- `ServerSocket`
+  - `InetServer` - TCP/IP server
+  - `UnixServer` - `AF_UNIX` server
+- `Stream`
+  - `Socket` - (TCP) streaming socket
+  - `Pipe` - kernel pipe
+  - `BufferStream` - userspace buffer stream
+  - `ChunkedStream` - composable stream, with userspace-/ kernelspace buffer chunks
+  - `FilterStream` - fitlerable stream
+- `Filter` - abstract filter
+  - `NullFilter`
   - ...
 
 ## Byte Buffers API
-
-- `Buffer`
-- `BufferRef`
-- `BufferView`
 
 ## Chunked Buffers API
 
@@ -114,14 +116,6 @@ something, that cannot be optimized by splice() or similar (AFAIK).
 - read chunk of size N into memory
 - read chunk of size N into pipe
 
-    class File;
-    class Socket;
-    class BufferBase;
-      class Buffer;
-      class BufferRef;
-      class FixedBuffer;
-      class MemoryRef;
-
     class Chunk {
     public:
         virtual ssize_t read(int fd, size_t size) = 0;
@@ -139,7 +133,6 @@ something, that cannot be optimized by splice() or similar (AFAIK).
         ssize_t pop_front(int fd, size_t size);
         Chunk* front();
     };
-
 
 ## STL integration brainstorming
 

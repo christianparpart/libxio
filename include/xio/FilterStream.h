@@ -2,6 +2,7 @@
 
 #include <xio/Api.h>
 #include <xio/Stream.h>
+#include <xio/Buffer.h>
 #include <memory>
 #include <deque>
 #include <sys/types.h>
@@ -11,19 +12,19 @@
 namespace xio {
 
 class Filter;
-class BufferRef;
-class Buffer;
 
 class XIO_API FilterStream : public Stream
 {
 private:
-	Stream* parent_;
+	std::unique_ptr<Stream> parent_;
+	Buffer buffer_;
+	size_t pos_;
 
 public:
 	std::deque<std::unique_ptr<Filter>> filters;
 
 public:
-	explicit FilterStream(Stream* parent);
+	explicit FilterStream(std::unique_ptr<Stream> parent);
 	FilterStream(Stream* parent, std::unique_ptr<Filter> filter);
 	~FilterStream();
 
@@ -49,6 +50,8 @@ public: // Stream API
 
 	virtual void accept(StreamVisitor&);
 
+private:
+	ssize_t pull(size_t size);
 	ssize_t process(const BufferRef& input, Buffer& output);
 };
 
