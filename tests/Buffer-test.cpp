@@ -118,6 +118,17 @@ TEST(MutableBuffer, ShlPod)
 	ASSERT_EQ("12345", b);
 }
 // }}}
+// {{{ FixedBuffer
+TEST(FixedBuffer, test1)
+{
+	char buf[80] = {"Hello, World"};
+	FixedBuffer b(buf, sizeof(buf), 12);
+	ASSERT_EQ("Hello, World", b);
+	b.clear();
+	b.push_back("blah");
+	ASSERT_EQ("blah", b);
+}
+// }}}
 // {{{ Buffer
 TEST(Buffer, Empty)
 {
@@ -126,12 +137,20 @@ TEST(Buffer, Empty)
 	ASSERT_EQ(0, b.size());
 }
 
-TEST(Buffer, fb1)
+TEST(Buffer, initialCapacity)
 {
-	char buf[80];
-	FixedBuffer b(buf, sizeof(buf));
-	b.clear();
-	b.push_back("blah");
-	ASSERT_EQ("blah", b.ref());
+	Buffer b("foo.bar");
+	ASSERT_EQ(7, b.capacity());
+}
+
+TEST(Buffer, view)
+{
+	Buffer b("foo.bar");
+	ASSERT_EQ("foo.bar", b.view());
+	ASSERT_EQ("foo.bar", b.view(0));
+	ASSERT_EQ("foo", b.view(0, 3));
+	ASSERT_EQ("bar", b.view(4));
+	ASSERT_EQ("bar", b.view(4, 3));
+	ASSERT_EQ("b", b.view(4, 1));
 }
 // }}}

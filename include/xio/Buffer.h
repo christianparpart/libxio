@@ -408,13 +408,9 @@ template<bool (*ensure)(void*, size_t), typename PodType, size_t N> XIO_API Muta
 template<bool (*ensure)(void*, size_t)> XIO_API MutableBuffer<ensure>& operator<<(MutableBuffer<ensure>& b, const typename MutableBuffer<ensure>::value_type *v);
 // }}}
 
-} // namespace xio
-
 //@}
 
 // {{{ BufferTraits helper impl
-namespace xio {
-
 inline BufferOffset::operator char* ()
 {
 	assert(buffer_ != nullptr && "BufferView must not be empty when accessing data.");
@@ -426,12 +422,8 @@ inline BufferOffset::operator const char* () const
 	assert(buffer_ != nullptr && "BufferView must not be empty when accessing data.");
 	return const_cast<BufferOffset*>(this)->buffer_->data() + offset_;
 }
-
-} // namespace xio
 // }}}
 // {{{ BufferBase<T> impl
-namespace xio {
-
 template<typename T>
 inline bool BufferBase<T>::contains(const BufferBase<T>& ref) const
 {
@@ -979,20 +971,15 @@ inline bool mutableEnsure(void* self, size_t size)
 
 	return buffer->setCapacity(size);
 }
-
-} // namespace xio
 // }}}
 // {{{ BufferRef impl
-namespace xio {
 inline BufferRef& BufferRef::operator=(const BufferRef& v) {
 	data_ = v.data_;
 	size_ = v.size_;
 	return *this;
 }
-}
 // }}}
 // {{{ MutableBuffer<ensure> impl
-namespace xio {
 template<bool (*ensure)(void*, size_t)>
 inline MutableBuffer<ensure>::MutableBuffer() :
 	BufferRef(),
@@ -1225,10 +1212,8 @@ inline MutableBuffer MutableBuffer<ensure>::fromCopy(const value_type *data, siz
 	return result;
 }
 */
-} // namespace xio
 // }}}
 // {{{ MutableBuffer<ensure>& operator<<() impl
-namespace xio {
 template<bool (*ensure)(void*, size_t)>
 inline MutableBuffer<ensure>& operator<<(MutableBuffer<ensure>& b, typename MutableBuffer<ensure>::value_type v)
 {
@@ -1312,10 +1297,7 @@ inline MutableBuffer<ensure>& operator<<(MutableBuffer<ensure>& b, const typenam
 	b.push_back(v);
 	return b;
 }
-} // namespace xio
 // }}}
-// {{{ Buffer impl
-namespace xio {
 // {{{ Buffer impl
 inline Buffer::Buffer() :
 	MutableBuffer<mutableEnsure>()
@@ -1425,12 +1407,7 @@ inline const Buffer::value_type *Buffer::c_str() const
 }
 
 // }}}
-} // namespace xio
-// }}}
-#if 0
 // {{{ BufferView impl
-namespace xio {
-
 inline BufferView::BufferView() :
 	BufferBase<Buffer>()
 {
@@ -1468,9 +1445,10 @@ inline void BufferView::shr(ssize_t value)
 {
 	size_ += value;
 }
+// }}}
 
 } // namespace xio
-// }}}
+
 // {{{ std::hash<BufferBase<T>>
 namespace xio {
 	// Fowler / Noll / Vo (FNV) Hash-Implementation
@@ -1519,4 +1497,3 @@ namespace std {
 	};
 }
 // }}}
-#endif
