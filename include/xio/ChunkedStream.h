@@ -27,6 +27,9 @@ public:
 	virtual ssize_t write(int fd, off_t *fd_off, size_t size);
 	virtual ssize_t write(int fd, size_t size);
 
+	template<typename PodType, size_t N>
+	ssize_t write(PodType (&value)[N]) { return write(value, N - 1); }
+
 	// read from buffer
 	virtual ssize_t read(void* buf, size_t size);
 	virtual ssize_t read(Socket* socket, size_t size);
@@ -50,7 +53,8 @@ private:
 // {{{ inlines
 inline ChunkedStream::ChunkedStream() :
 	chunks_()
-{}
+{
+}
 
 inline ChunkedStream::~ChunkedStream()
 {

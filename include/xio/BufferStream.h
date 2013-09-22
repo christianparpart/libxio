@@ -10,10 +10,9 @@ class XIO_API BufferStream : public Stream
 private:
 	Buffer data_;
 	size_t readOffset_;
-	size_t writeOffset_;
 
 public:
-	BufferStream() : data_(), readOffset_(0), writeOffset_(0) {}
+	BufferStream() : data_(), readOffset_(0) {}
 	explicit BufferStream(size_t cap);
 	~BufferStream();
 
@@ -44,6 +43,8 @@ public:
 
 private:
 	char* data() { return (char*) data_.data(); }
+	size_t writeOffset() const { return data_.size(); }
+	size_t readOffset() const { return readOffset_; }
 };
 
 } // namespace xio

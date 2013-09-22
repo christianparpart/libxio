@@ -10,8 +10,7 @@ namespace xio {
 
 BufferStream::BufferStream(size_t cap) :
 	data_(cap),
-	readOffset_(0),
-	writeOffset_(0)
+	readOffset_(0)
 {
 }
 
@@ -21,15 +20,14 @@ BufferStream::~BufferStream()
 
 size_t BufferStream::size() const
 {
-	return writeOffset_ - readOffset_;
+	return writeOffset() - readOffset_;
 }
 
 ssize_t BufferStream::write(const void* buf, size_t size)
 {
-	size_t n = std::min(capacity() - writeOffset_, size);
-	memcpy(data() + writeOffset_, buf, n);
-	writeOffset_ += n;
-	return n;
+	size_t n = data_.size();
+	data_.push_back(buf, size);
+	return data_.size() - n;
 }
 
 ssize_t BufferStream::write(Socket* socket, size_t size, Mode /*mode*/)
@@ -39,50 +37,58 @@ ssize_t BufferStream::write(Socket* socket, size_t size, Mode /*mode*/)
 
 ssize_t BufferStream::write(Pipe* pipe, size_t size, Mode /*mode*/)
 {
-	ssize_t n = std::min(capacity() - writeOffset_, size);
-	n = pipe->read(data() + writeOffset_, n);
+	data_.reserve(data_.size() + size);
+
+	ssize_t n = std::min(capacity() - writeOffset(), size);
+	n = pipe->read(data() + writeOffset(), n);
 
 	if (n > 0)
-		writeOffset_ += n;
+		data_.resize(data_.size() + n);
 
 	return n;
 }
 
 ssize_t BufferStream::write(int fd, size_t size)
 {
-	ssize_t n = std::min(capacity() - writeOffset_, size);
-	n = ::read(fd, data() + writeOffset_, n);
+	data_.reserve(data_.size() + size);
+
+	ssize_t n = std::min(capacity() - writeOffset(), size);
+	n = ::read(fd, data() + writeOffset(), n);
 
 	if (n > 0)
-		writeOffset_ += n;
+		data_.resize(data_.size() + n);
 
 	return n;
 }
 
 ssize_t BufferStream::write(int fd, off_t *fd_off, size_t size)
 {
-	ssize_t n = std::min(capacity() - writeOffset_, size);
+	data_.reserve(data_.size() + size);
+
+	ssize_t n = std::min(capacity() - writeOffset(), size);
 	n = fd_off
-		? ::pread(fd, data() + writeOffset_, n, *fd_off)
-		: ::read(fd, data() + writeOffset_, n);
+		? ::pread(fd, data() + writeOffset(), n, *fd_off)
+		: ::read(fd, data() + writeOffset(), n);
 
 	if (n > 0)
-		writeOffset_ += n;
+		data_.resize(data_.size() + n);
 
 	return n;
 }
 
 ssize_t BufferStream::read(void* buf, size_t size)
 {
-	if (size < this->size()) {
-		memcpy(buf, data(), size);
-		readOffset_ += size;
+	ssize_t n = std::min(size, this->size());
+	memcpy(buf, data(), n);
+
+	if (readOffset_ + n == writeOffset()) {
+		readOffset_ += n;
 	} else {
-		memcpy(buf, data(), this->size());
-		readOffset_ = writeOffset_ = 0;
+		readOffset_ = 0;
+		data_.clear();
 	}
 
-	return size;
+	return n;
 }
 
 ssize_t BufferStream::read(Socket* socket, size_t size)
@@ -125,7 +131,7 @@ ssize_t BufferStream::read(int fd, off_t *fd_off, size_t size)
 
 int BufferStream::read()
 {
-	if (readOffset_ != writeOffset_) {
+	if (readOffset_ != writeOffset()) {
 		int ch = data()[readOffset_];
 		++readOffset_;
 		return ch;

@@ -26,6 +26,7 @@ void cbtest()
 	buf.write("World");
 	buf.write("\n");
 	buf.write(fd, st.st_size);
+	// writev(iov...)
 
 #if 0
 //	for (auto chunk: buf)

@@ -71,7 +71,7 @@ ssize_t ChunkedStream::write(int fd, off_t *fd_off, size_t size)
 
 ssize_t ChunkedStream::read(void* buf, size_t size)
 {
-	return 0;
+	return 0; // TODO
 }
 
 ssize_t ChunkedStream::read(Socket* socket, size_t size)
@@ -128,7 +128,7 @@ ssize_t ChunkedStream::read(int fd, size_t size)
 
 ssize_t ChunkedStream::read(int fd, off_t *fd_off, size_t size)
 {
-	return 0;
+	return 0; // TODO
 }
 
 int ChunkedStream::read()
