@@ -47,7 +47,7 @@ bool Server::setup()
 void Server::accept(Socket* client, ServerSocket* /*local*/)
 {
 	printf("New client connected.\n");
-	int* i = new int(0);
+	auto i = std::make_shared<int>(0);
 
 	client->on(Socket::READ, TimeSpan::fromSeconds(10), [client, i](int re) {
 		if (re & Socket::TIMEOUT) {
@@ -64,11 +64,9 @@ void Server::accept(Socket* client, ServerSocket* /*local*/)
 			} else if (n == 0) {
 				printf("Remote endpoint closed.\n");
 				delete client;
-				delete i;
 			} else {
 				printf("Remote endpoint read error. %s\n", strerror(errno));
 				delete client;
-				delete i;
 			}
 		}
 	});
