@@ -20,6 +20,7 @@ Socket::Socket(struct ev_loop* loop) :
 	fd_(-1),
 	state_(Closed),
 	io_(loop),
+	timeout_(TimeSpan::Zero),
 	timer_(loop),
 	handler_()
 {
@@ -163,12 +164,14 @@ void Socket::on(int mode, TimeSpan timeout, std::function<void(int)> cb)
 	}
 
 	handler_ = cb;
+	timeout_ = timeout;
 	timer_.start(timeout.value(), 0);
 	io_.start(fd_, mode);
 }
 
 void Socket::start(int mode, TimeSpan timeout)
 {
+	timeout_ = timeout;
 	timer_.start(timeout.value(), 0);
 	io_.start(fd_, mode);
 }
@@ -181,7 +184,8 @@ void Socket::restart()
 	if (timer_.is_active())
 		timer_.stop();
 
-	timer_.start();
+	if (timeout_)
+		timer_.start(timeout_.value());
 }
 
 void Socket::stop()

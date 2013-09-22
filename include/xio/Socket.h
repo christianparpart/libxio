@@ -84,6 +84,7 @@ private:
 	int fd_;
 	State state_;
 	ev::io io_;
+	TimeSpan timeout_;
 	ev::timer timer_;
 	std::function<void(int)> handler_;
 };
