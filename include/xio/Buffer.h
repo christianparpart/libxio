@@ -966,10 +966,9 @@ inline bool immutableEnsure(void* self, size_t size)
 inline bool mutableEnsure(void* self, size_t size)
 {
 	Buffer* buffer = (Buffer*) self;
-	if (size <= buffer->capacity())
-		return true;
-
-	return buffer->setCapacity(size);
+	return size > buffer->capacity() || size == 0 
+		? buffer->setCapacity(size)
+		: true;
 }
 // }}}
 // {{{ BufferRef impl

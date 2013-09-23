@@ -29,7 +29,7 @@ namespace xio {
  */
 bool Buffer::setCapacity(std::size_t value)
 {
-	if (value == 0) {
+	if (value == 0 && capacity_) {
 		free(data_);
 		capacity_ = 0;
 		return true;
