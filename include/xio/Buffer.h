@@ -24,7 +24,7 @@ namespace xio {
 template<typename> class BufferBase;
 template<bool (*ensure)(void*, size_t)> class MutableBuffer;
 class BufferRef;
-class BufferView;
+class BufferSlice;
 class FixedBuffer;
 class Buffer;
 
@@ -356,8 +356,8 @@ public:
 	Buffer& operator=(const std::string& v);
 	Buffer& operator=(const value_type* v);
 
-	BufferView view(size_t offset = 0) const;
-	BufferView view(size_t offset, size_t size) const;
+	BufferSlice slice(size_t offset = 0) const;
+	BufferSlice slice(size_t offset, size_t size) const;
 
 	const char* c_str() const;
 
@@ -369,18 +369,18 @@ public:
 //	static Buffer fromCopy(const value_type *data, size_t count);
 };
 // }}}
-// {{{ BufferView
-/** holds a reference to a region of a buffer
+// {{{ BufferSlice
+/** Holds a reference to a slice (region) of a managed mutable buffer.
  */
-class XIO_API BufferView :
+class XIO_API BufferSlice :
 	public BufferBase<Buffer>
 {
 public:
-	BufferView();
-	BufferView(Buffer& buffer, size_t offset, size_t _size);
-	BufferView(const BufferView& v);
+	BufferSlice();
+	BufferSlice(Buffer& buffer, size_t offset, size_t _size);
+	BufferSlice(const BufferSlice& v);
 
-	BufferView& operator=(const BufferView& v);
+	BufferSlice& operator=(const BufferSlice& v);
 
 	void shl(ssize_t offset = 1);
 	void shr(ssize_t offset = 1);
@@ -413,13 +413,13 @@ template<bool (*ensure)(void*, size_t)> XIO_API MutableBuffer<ensure>& operator<
 // {{{ BufferTraits helper impl
 inline BufferOffset::operator char* ()
 {
-	assert(buffer_ != nullptr && "BufferView must not be empty when accessing data.");
+	assert(buffer_ != nullptr && "BufferSlice must not be empty when accessing data.");
 	return buffer_->data() + offset_;
 }
 
 inline BufferOffset::operator const char* () const
 {
-	assert(buffer_ != nullptr && "BufferView must not be empty when accessing data.");
+	assert(buffer_ != nullptr && "BufferSlice must not be empty when accessing data.");
 	return const_cast<BufferOffset*>(this)->buffer_->data() + offset_;
 }
 // }}}
@@ -1381,20 +1381,20 @@ inline Buffer& Buffer::operator=(const value_type* v)
 	return *this;
 }
 
-inline BufferView Buffer::view(size_t offset) const
+inline BufferSlice Buffer::slice(size_t offset) const
 {
 	assert(offset <= size());
-	return BufferView(*(Buffer*) this, offset, size() - offset);
+	return BufferSlice(*(Buffer*) this, offset, size() - offset);
 }
 
-inline BufferView Buffer::view(size_t offset, size_t count) const
+inline BufferSlice Buffer::slice(size_t offset, size_t count) const
 {
 	assert(offset <= size());
 	assert(count == npos || offset + count <= size());
 
 	return count != npos
-		? BufferView(*(Buffer*) this, offset, count)
-		: BufferView(*(Buffer*) this, offset, size() - offset);
+		? BufferSlice(*(Buffer*) this, offset, count)
+		: BufferSlice(*(Buffer*) this, offset, size() - offset);
 }
 
 inline const Buffer::value_type *Buffer::c_str() const
@@ -1406,23 +1406,23 @@ inline const Buffer::value_type *Buffer::c_str() const
 }
 
 // }}}
-// {{{ BufferView impl
-inline BufferView::BufferView() :
+// {{{ BufferSlice impl
+inline BufferSlice::BufferSlice() :
 	BufferBase<Buffer>()
 {
 }
 
-inline BufferView::BufferView(Buffer& buffer, size_t offset, size_t size) :
+inline BufferSlice::BufferSlice(Buffer& buffer, size_t offset, size_t size) :
 	BufferBase<Buffer>(data_type(&buffer, offset), size)
 {
 }
 
-inline BufferView::BufferView(const BufferView& v) :
+inline BufferSlice::BufferSlice(const BufferSlice& v) :
 	BufferBase<Buffer>(v)
 {
 }
 
-inline BufferView& BufferView::operator=(const BufferView& v)
+inline BufferSlice& BufferSlice::operator=(const BufferSlice& v)
 {
 	data_ = v.data_;
 	size_ = v.size_;
@@ -1432,7 +1432,7 @@ inline BufferView& BufferView::operator=(const BufferView& v)
 
 /** shifts view's left margin by given bytes to the left, thus, increasing view's size.
  */
-inline void BufferView::shl(ssize_t value)
+inline void BufferSlice::shl(ssize_t value)
 {
 	assert(data_.offset_ - value >= 0);
 	data_.offset_ -= value;
@@ -1440,7 +1440,7 @@ inline void BufferView::shl(ssize_t value)
 
 /** shifts view's right margin by given bytes to the right, thus, increasing view's size.
  */
-inline void BufferView::shr(ssize_t value)
+inline void BufferSlice::shr(ssize_t value)
 {
 	size_ += value;
 }
@@ -1466,8 +1466,8 @@ namespace xio {
 
 namespace std {
 	template<>
-	struct hash<xio::BufferView> {
-		typedef xio::BufferView argument_type;
+	struct hash<xio::BufferSlice> {
+		typedef xio::BufferSlice argument_type;
 		typedef uint32_t result_type;
 
 		result_type operator()(const argument_type& value) const noexcept {

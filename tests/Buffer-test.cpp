@@ -143,14 +143,14 @@ TEST(Buffer, initialCapacity)
 	ASSERT_EQ(7, b.capacity());
 }
 
-TEST(Buffer, view)
+TEST(Buffer, slice)
 {
 	Buffer b("foo.bar");
-	ASSERT_EQ("foo.bar", b.view());
-	ASSERT_EQ("foo.bar", b.view(0));
-	ASSERT_EQ("foo", b.view(0, 3));
-	ASSERT_EQ("bar", b.view(4));
-	ASSERT_EQ("bar", b.view(4, 3));
-	ASSERT_EQ("b", b.view(4, 1));
+	ASSERT_EQ("foo.bar", b.slice());
+	ASSERT_EQ("foo.bar", b.slice(0));
+	ASSERT_EQ("foo", b.slice(0, 3));
+	ASSERT_EQ("bar", b.slice(4));
+	ASSERT_EQ("bar", b.slice(4, 3));
+	ASSERT_EQ("b", b.slice(4, 1));
 }
 // }}}
