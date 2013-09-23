@@ -23,6 +23,16 @@ size_t BufferStream::size() const
 	return writeOffset() - readOffset_;
 }
 
+void BufferStream::shift(size_t n)
+{
+	if (readOffset_ + n == writeOffset()) {
+		readOffset_ += n;
+	} else {
+		readOffset_ = 0;
+		data_.clear();
+	}
+}
+
 ssize_t BufferStream::write(const void* buf, size_t size)
 {
 	size_t n = data_.size();
@@ -81,12 +91,7 @@ ssize_t BufferStream::read(void* buf, size_t size)
 	ssize_t n = std::min(size, this->size());
 	memcpy(buf, data(), n);
 
-	if (readOffset_ + n == writeOffset()) {
-		readOffset_ += n;
-	} else {
-		readOffset_ = 0;
-		data_.clear();
-	}
+	shift(n);
 
 	return n;
 }

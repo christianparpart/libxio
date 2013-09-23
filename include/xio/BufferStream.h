@@ -20,6 +20,8 @@ public:
 	virtual size_t size() const;
 	size_t capacity() const { return data_.capacity(); }
 
+	void shift(size_t n);
+
 	// random access
 	const char* data() const { return data_.data(); }
 	const char& operator[](size_t n) const { return data_[n]; }
