@@ -4,14 +4,14 @@
 
 The idea behind libxio is, to basically privde a better I/O subsystem as I have
 designed so far for x0. However, this included also copying (and partly redesigning)
-some other parts of the base APIs over; reason enough to make it a fully featured
+some other parts of the base APIs, too; reason enough to make it a fully featured
 base framework an application can depend on.
 
 ## Class Diagram
 
 - `BufferRef` - unmanaged immutable buffer
 - `Buffer` - managed mutable buffer
-- `BufferView` - safe sub-view into a managed mutable buffer
+- `BufferSlice` - safe slice into a managed mutable buffer
 - `FixedBuffer` - unmanaged mutable buffer
 - `DateTime` - date/time
 - `TimeSpan` - a time span / duration
