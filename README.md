@@ -87,7 +87,7 @@ some kernel system calls.
 - `Stream`
   - `FileStream` - local file
   - `Socket` - network socket
-  - `Pipe` - system pipe (aka KernelBuffer)
+  - `Pipe` - system pipe
   - `BufferStream` - memory buffer
   - `OpaqueBuffer`
 - `StreamVisitor`

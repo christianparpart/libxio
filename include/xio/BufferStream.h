@@ -43,10 +43,11 @@ public:
 
 	virtual void accept(StreamVisitor&);
 
-private:
-	char* data() { return (char*) data_.data(); }
-	size_t writeOffset() const { return data_.size(); }
 	size_t readOffset() const { return readOffset_; }
+	size_t writeOffset() const { return data_.size(); }
+
+private:
+	char* rwdata() { return (char*) data_.data(); }
 };
 
 } // namespace xio

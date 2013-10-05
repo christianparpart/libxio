@@ -25,7 +25,7 @@ size_t BufferStream::size() const
 
 void BufferStream::shift(size_t n)
 {
-	if (readOffset_ + n == writeOffset()) {
+	if (readOffset_ + n < writeOffset()) {
 		readOffset_ += n;
 	} else {
 		readOffset_ = 0;
@@ -50,7 +50,7 @@ ssize_t BufferStream::write(Pipe* pipe, size_t size, Mode /*mode*/)
 	data_.reserve(data_.size() + size);
 
 	ssize_t n = std::min(capacity() - writeOffset(), size);
-	n = pipe->read(data() + writeOffset(), n);
+	n = pipe->read(rwdata() + writeOffset(), n);
 
 	if (n > 0)
 		data_.resize(data_.size() + n);
@@ -63,7 +63,7 @@ ssize_t BufferStream::write(int fd, size_t size)
 	data_.reserve(data_.size() + size);
 
 	ssize_t n = std::min(capacity() - writeOffset(), size);
-	n = ::read(fd, data() + writeOffset(), n);
+	n = ::read(fd, rwdata() + writeOffset(), n);
 
 	if (n > 0)
 		data_.resize(data_.size() + n);
@@ -77,8 +77,8 @@ ssize_t BufferStream::write(int fd, off_t *fd_off, size_t size)
 
 	ssize_t n = std::min(capacity() - writeOffset(), size);
 	n = fd_off
-		? ::pread(fd, data() + writeOffset(), n, *fd_off)
-		: ::read(fd, data() + writeOffset(), n);
+		? ::pread(fd, rwdata() + writeOffset(), n, *fd_off)
+		: ::read(fd, rwdata() + writeOffset(), n);
 
 	if (n > 0)
 		data_.resize(data_.size() + n);
@@ -89,7 +89,7 @@ ssize_t BufferStream::write(int fd, off_t *fd_off, size_t size)
 ssize_t BufferStream::read(void* buf, size_t size)
 {
 	ssize_t n = std::min(size, this->size());
-	memcpy(buf, data(), n);
+	memcpy(buf, data() + readOffset(), n);
 
 	shift(n);
 

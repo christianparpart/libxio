@@ -138,22 +138,33 @@ Socket* Socket::open(struct ev_loop* loop, const SocketSpec& spec, int flags)
 
 bool Socket::tcpCork() const
 {
+	// TODO
 	return false;
 }
 
 void Socket::setTcpCork(bool enable)
 {
+	// TODO
 }
 
 TimeSpan Socket::lingering() const
 {
+	// TODO
 	return TimeSpan::Zero;
 }
 
 void Socket::setLingering(TimeSpan timeout)
 {
+	// TODO
 }
 
+/**
+ * Watches on I/O events for specified timeout and will call back on either event or timeout expiry.
+ *
+ * @param mode bit-mask of I/O events to watch on.
+ * @param timeout timeout to wait for given events.
+ * @param cb callback to invoke if either given I/O event(s) occured or if timeout has been reached.
+ */
 void Socket::on(int mode, TimeSpan timeout, std::function<void(int)> cb)
 {
 	assert((mode & TIMEOUT) == 0);
@@ -169,10 +180,22 @@ void Socket::on(int mode, TimeSpan timeout, std::function<void(int)> cb)
 	io_.start(fd_, mode);
 }
 
-void Socket::start(int mode, TimeSpan timeout)
+void Socket::watch(int mode, TimeSpan timeout)
 {
-	timeout_ = timeout;
-	timer_.start(timeout.value(), 0);
+	if (timeout)
+		timeout_ = timeout;
+
+	watch(mode);
+}
+
+void Socket::watch(int mode)
+{
+	if (timeout_)
+		timer_.start(timeout_.value(), 0);
+
+	if (io_.is_active())
+		io_.stop();
+
 	io_.start(fd_, mode);
 }
 

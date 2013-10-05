@@ -46,8 +46,10 @@ public:
 	TimeSpan lingering() const;
 	void setLingering(TimeSpan timeout);
 
+	// rename "on" to "watch" ?
 	void on(int mode, TimeSpan timeout, std::function<void(int)> cb);
-	void start(int mode, TimeSpan timeout);
+	void watch(int mode, TimeSpan timeout);
+	void watch(int mode);
 	void restart();
 	void stop();
 
