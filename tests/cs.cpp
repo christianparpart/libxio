@@ -10,10 +10,14 @@
 
 using namespace xio;
 
+const char* bindaddr = "0.0.0.0";
+const char* ipaddr = "127.0.0.1";
+int port = 8089;
+
 void* client_run(void*)
 {
 	ev::loop_ref loop = ev::dynamic_loop();
-	File file("/etc/passwd");
+	File file("/etc/issue");
 	auto fs = file.source();
 
 	Buffer buf;
@@ -22,7 +26,7 @@ void* client_run(void*)
 	buf.printf("\r\n");
 
 	Socket client(loop);
-	if (!client.open(IPAddress("127.0.0.1"), 8089))
+	if (!client.open(IPAddress(ipaddr), port))
 		perror("client: open");
 
 	client.write(buf.data(), buf.size());
@@ -31,14 +35,20 @@ void* client_run(void*)
 	return NULL;
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
+	if (argc == 4) {
+		port = atoi(argv[1]);
+		ipaddr = argv[2];
+		bindaddr = argv[3];
+	}
+
 	ev::loop_ref loop = ev::default_loop(0);
 	Buffer buf;
 	buf.reserve(32 * 1024);
 
 	auto server = new InetServer(loop);
-	server->open(IPAddress("0.0.0.0"), 8089);
+	server->open(IPAddress(bindaddr), port);
 	if (!server->isOpen()) {
 		perror("server.open()");
 	}
