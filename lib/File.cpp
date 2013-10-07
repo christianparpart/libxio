@@ -125,23 +125,13 @@ void File::clearCache()
 	}
 }
 
-std::unique_ptr<FileStream> File::source(int flags)
+std::unique_ptr<FileStream> File::open(int flags)
 {
-	int fd = ::open(path_.c_str(), O_RDONLY | flags);
+	int fd = ::open(path_.c_str(), flags);
 	if (fd < 0)
 		return std::unique_ptr<FileStream>();
 
 	return std::unique_ptr<FileStream>(new FileStream(fd));
 }
-
-std::unique_ptr<FileStream> File::sink(int flags)
-{
-	int fd = ::open(path_.c_str(), O_WRONLY | flags);
-	if (fd < 0)
-		return std::unique_ptr<FileStream>();
-
-	return std::unique_ptr<FileStream>(new FileStream(fd));
-}
-
 
 } // namespace xio

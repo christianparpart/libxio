@@ -10,8 +10,8 @@ int main(int argc, char* argv[])
 {
 	File fin("/dev/stdin");
 	File fout("/dev/stdout");
-	auto in = fin.source();
-	auto out = fout.sink();
+	auto in = fin.open(O_RDONLY);
+	auto out = fout.open(O_WRONLY);
 	char buf[1024];
 	ssize_t n;
 

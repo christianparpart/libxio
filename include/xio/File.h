@@ -43,8 +43,7 @@ public:
 	bool updateCache();
 	void clearCache();
 
-	std::unique_ptr<FileStream> source(int flags = O_RDONLY);
-	std::unique_ptr<FileStream> sink(int flags = O_WRONLY);
+	std::unique_ptr<FileStream> open(int flags);
 
 	const struct stat* operator->() const { return &stat_; }
 

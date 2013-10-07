@@ -18,7 +18,7 @@ void* client_run(void*)
 {
 	ev::loop_ref loop = ev::dynamic_loop();
 	File file("/etc/issue");
-	auto fs = file.source();
+	auto fs = file.open(O_RDONLY);
 
 	Buffer buf;
 	buf.printf("POST / HTTP/1.1\r\n");
