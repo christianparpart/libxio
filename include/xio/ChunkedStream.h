@@ -21,7 +21,7 @@ public:
 	virtual size_t size() const;
 
 	// write to buffer
-	virtual ssize_t write(const void* buf, size_t size);
+	virtual ssize_t write(const char* buf, size_t size);
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode);
 	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode);
 	virtual ssize_t write(int fd, size_t size);
@@ -30,7 +30,8 @@ public:
 	ssize_t write(PodType (&value)[N]) { return write(value, N - 1); }
 
 	// read from buffer
-	virtual ssize_t read(void* buf, size_t size);
+	virtual ssize_t read(Buffer& result, size_t size);
+	virtual ssize_t read(char* buf, size_t size);
 	virtual ssize_t read(Socket* socket, size_t size);
 	virtual ssize_t read(Pipe* socket, size_t size);
 	virtual ssize_t read(int fd, size_t size);

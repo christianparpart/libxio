@@ -12,9 +12,8 @@ using namespace xio;
 
 void* client_run(void*)
 {
-	printf("client: started\n");
 	ev::loop_ref loop = ev::dynamic_loop();
-	File file("/etc/issue");
+	File file("/etc/passwd");
 	auto fs = file.source();
 
 	Buffer buf;
@@ -29,15 +28,14 @@ void* client_run(void*)
 	client.write(buf.data(), buf.size());
 	client.write(fs.get(),  fs->size());
 
-	client.read(buf);
-
-	printf("client done\n");
 	return NULL;
 }
 
 int main()
 {
 	ev::loop_ref loop = ev::default_loop(0);
+	Buffer buf;
+	buf.reserve(32 * 1024);
 
 	auto server = new InetServer(loop);
 	server->open(IPAddress("0.0.0.0"), 8089);
@@ -45,20 +43,30 @@ int main()
 		perror("server.open()");
 	}
 
-	pthread_t client;
-	int rv = pthread_create(&client, NULL, client_run, NULL);
+	pthread_t client_thread;
+	int rv = pthread_create(&client_thread, NULL, client_run, NULL);
 	if (rv < 0) {
 		perror("pthread_create");
 		exit(1);
 	}
 
 	if (Socket* cs = server->acceptOne()) {
-		printf("server: received client connect\n");
-		cs->write("Hello\r\n", 7);
+		ssize_t n = cs->read(buf, 39);
+		write(STDOUT_FILENO, buf.data(), buf.size());
+		buf.clear();
+
+		Pipe pipe;
+		do {
+			n = cs->read(&pipe, 1024);
+			pipe.read(STDOUT_FILENO, pipe.size());
+		} while (n > 0);
+
+//		cs->read(chunkedBuffer, Stream::MOVE);
+
 		delete cs;
 	}
 
-	pthread_join(client, NULL);
+	pthread_join(client_thread, NULL);
 
 	return 0;
 }

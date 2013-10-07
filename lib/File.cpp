@@ -125,22 +125,22 @@ void File::clearCache()
 	}
 }
 
-std::unique_ptr<Stream> File::source(int flags)
+std::unique_ptr<FileStream> File::source(int flags)
 {
 	int fd = ::open(path_.c_str(), O_RDONLY | flags);
 	if (fd < 0)
-		return std::unique_ptr<Stream>();
+		return std::unique_ptr<FileStream>();
 
-	return std::unique_ptr<Stream>(new FileStream(fd));
+	return std::unique_ptr<FileStream>(new FileStream(fd));
 }
 
-std::unique_ptr<Stream> File::sink(int flags)
+std::unique_ptr<FileStream> File::sink(int flags)
 {
 	int fd = ::open(path_.c_str(), O_WRONLY | flags);
 	if (fd < 0)
-		return std::unique_ptr<Stream>();
+		return std::unique_ptr<FileStream>();
 
-	return std::unique_ptr<Stream>(new FileStream(fd));
+	return std::unique_ptr<FileStream>(new FileStream(fd));
 }
 
 

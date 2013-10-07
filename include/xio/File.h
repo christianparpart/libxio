@@ -2,6 +2,7 @@
 
 #include <xio/Api.h>
 #include <xio/DateTime.h>
+#include <xio/FileStream.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -42,8 +43,8 @@ public:
 	bool updateCache();
 	void clearCache();
 
-	std::unique_ptr<Stream> source(int flags = O_RDONLY);
-	std::unique_ptr<Stream> sink(int flags = O_WRONLY);
+	std::unique_ptr<FileStream> source(int flags = O_RDONLY);
+	std::unique_ptr<FileStream> sink(int flags = O_WRONLY);
 
 	const struct stat* operator->() const { return &stat_; }
 

@@ -24,7 +24,12 @@ size_t FileStream::size() const
 	return st.st_size;
 }
 
-ssize_t FileStream::read(void* buf, size_t size)
+ssize_t FileStream::read(Buffer& result, size_t size)
+{
+	return -1; // TODO
+}
+
+ssize_t FileStream::read(char* buf, size_t size)
 {
 	return ::read(fd_, buf, size);
 }
@@ -49,7 +54,7 @@ int FileStream::read()
 	return -1; // TODO
 }
 
-ssize_t FileStream::write(const void* buf, size_t size)
+ssize_t FileStream::write(const char* buf, size_t size)
 {
 	return ::write(fd_, buf, size);
 }

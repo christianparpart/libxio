@@ -25,7 +25,7 @@ size_t ChunkedStream::size() const
 	return result;
 }
 
-ssize_t ChunkedStream::write(const void* buf, size_t size)
+ssize_t ChunkedStream::write(const char* buf, size_t size)
 {
 	if (auto chunk = buffer(size))
 		return chunk->write(buf, size);
@@ -61,7 +61,17 @@ ssize_t ChunkedStream::write(int fd, size_t size)
 	return -1;
 }
 
-ssize_t ChunkedStream::read(void* buf, size_t size)
+ssize_t ChunkedStream::read(Buffer& result, size_t size)
+{
+	result.reserve(result.size() + size);
+	ssize_t n = read(result.end(), size);
+	if (n > 0) {
+		result.resize(result.size() + n);
+	}
+	return n;
+}
+
+ssize_t ChunkedStream::read(char* buf, size_t size)
 {
 	ssize_t result = 0;
 	while (!empty() && size > 0) {

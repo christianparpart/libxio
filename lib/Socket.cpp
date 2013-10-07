@@ -1,6 +1,7 @@
 #include <xio/Socket.h>
 #include <xio/IPAddress.h>
 #include <xio/Pipe.h>
+#include <xio/FileStream.h>
 #include <xio/StreamVisitor.h>
 #include <sys/sendfile.h>
 #include <sys/types.h>
@@ -290,7 +291,40 @@ size_t Socket::size() const
 	return 0; // not supported
 }
 
-ssize_t Socket::read(void* buf, size_t size)
+ssize_t Socket::read(Buffer& result, size_t size)
+{
+	ssize_t nread = 0;
+
+	while (size > 0) {
+		if (result.capacity() - result.size() < 256) {
+			if (!result.reserve(std::max(static_cast<std::size_t>(4096), static_cast<std::size_t>(result.size() * 1.5)))) {
+				// could not allocate enough memory
+				errno = ENOMEM;
+				return nread ? nread : -1;
+			}
+		}
+
+		size_t nbytes = result.capacity() - result.size();
+		nbytes = std::min(nbytes, size);
+
+		ssize_t rv = ::read(fd_, result.end(), nbytes);
+		if (rv <= 0) {
+			return nread != 0 ? nread : rv;
+		} else {
+			size -= rv;
+			nread += rv;
+			result.resize(result.size() + rv);
+
+			if (static_cast<std::size_t>(rv) < nbytes) {
+				return nread;
+			}
+		}
+	}
+
+	return nread;
+}
+
+ssize_t Socket::read(char* buf, size_t size)
 {
 	return ::read(fd_, buf, size);
 }
@@ -302,7 +336,7 @@ ssize_t Socket::read(Socket* socket, size_t size)
 
 ssize_t Socket::read(Pipe* pipe, size_t size)
 {
-	return 0;
+	return pipe->write(this, size, Stream::MOVE);
 }
 
 ssize_t Socket::read(int fd, size_t size)
@@ -319,9 +353,14 @@ int Socket::read()
 	return ch;
 }
 
-ssize_t Socket::write(const void* buf, size_t size)
+ssize_t Socket::write(const char* buf, size_t size)
 {
 	return ::write(fd_, buf, size);
+}
+
+ssize_t Socket::write(FileStream* fs, size_t size, Mode mode)
+{
+	return sendfile(fd_, fs->handle(), nullptr, size);
 }
 
 ssize_t Socket::write(Socket* socket, size_t size, Mode mode)

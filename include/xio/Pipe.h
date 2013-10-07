@@ -14,6 +14,7 @@
 namespace xio {
 
 class Socket;
+class Buffer;
 
 //! \addtogroup io
 //@{
@@ -23,6 +24,12 @@ class XIO_API Pipe : public Stream
 private:
 	int pipe_[2];
 	size_t size_; // number of bytes available in pipe
+
+	// direct access to their internal file descriptors
+	int writeFd() const;
+	int readFd() const;
+
+	friend class Socket;
 
 public:
 	explicit Pipe(int flags = 0);
@@ -35,18 +42,15 @@ public:
 
 	void clear();
 
-	// direct access to their internal file descriptors
-	int writeFd() const;
-	int readFd() const;
-
 	// write to pipe
-	virtual ssize_t write(const void* buf, size_t size);
+	virtual ssize_t write(const char* buf, size_t size);
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode);
 	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode);
 	virtual ssize_t write(int fd, size_t size);
 
 	// read from pipe
-	virtual ssize_t read(void* buf, size_t size);
+	virtual ssize_t read(Buffer& result, size_t size);
+	virtual ssize_t read(char* buf, size_t size);
 	virtual ssize_t read(Socket* socket, size_t size);
 	virtual ssize_t read(Pipe* socket, size_t size);
 	virtual ssize_t read(int fd, size_t size);

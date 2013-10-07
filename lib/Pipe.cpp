@@ -53,7 +53,7 @@ void Pipe::clear()
 	}
 }
 
-ssize_t Pipe::write(const void* buf, size_t size)
+ssize_t Pipe::write(const char* buf, size_t size)
 {
 	ssize_t rv = ::write(writeFd(), buf, size);
 
@@ -65,7 +65,16 @@ ssize_t Pipe::write(const void* buf, size_t size)
 
 ssize_t Pipe::write(Socket* socket, size_t size, Mode mode)
 {
-	return 0;//socket->write(this, size);
+	if (mode != MOVE) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	ssize_t rv = splice(socket->handle(), NULL, writeFd(), NULL, size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
+	if (rv > 0)
+		size_ += rv;
+
+	return rv;
 }
 
 ssize_t Pipe::write(Pipe* pipe, size_t size, Mode mode)
@@ -96,7 +105,39 @@ ssize_t Pipe::write(int fd, size_t size)
 	return rv;
 }
 
-ssize_t Pipe::read(void* buf, size_t size)
+ssize_t Pipe::read(Buffer& result, size_t size)
+{
+	ssize_t nread = 0;
+
+	while (size > 0) {
+		if (result.capacity() - result.size() < 256) {
+			if (!result.reserve(std::max(static_cast<std::size_t>(4096), static_cast<std::size_t>(result.size() * 1.5)))) {
+				// could not allocate enough memory
+				errno = ENOMEM;
+				return nread ? nread : -1;
+			}
+		}
+
+		size_t nbytes = result.capacity() - result.size();
+		nbytes = std::min(nbytes, size);
+
+		ssize_t rv = ::read(readFd(), result.end(), nbytes);
+		if (rv <= 0) {
+			return nread != 0 ? nread : rv;
+		} else {
+			size -= rv;
+			nread += rv;
+			result.resize(result.size() + rv);
+
+			if (static_cast<std::size_t>(rv) < nbytes) {
+				return nread;
+			}
+		}
+	}
+
+	return nread;
+}
+ssize_t Pipe::read(char* buf, size_t size)
 {
 	ssize_t rv = ::read(readFd(), buf, size);
 
@@ -113,7 +154,7 @@ ssize_t Pipe::read(Socket* socket, size_t size)
 
 ssize_t Pipe::read(Pipe* pipe, size_t size)
 {
-	return pipe->write(this, size);
+	return 0; //pipe->write(this, size);
 }
 
 ssize_t Pipe::read(int fd, size_t size)

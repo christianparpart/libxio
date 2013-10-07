@@ -33,7 +33,7 @@ void BufferStream::shift(size_t n)
 	}
 }
 
-ssize_t BufferStream::write(const void* buf, size_t size)
+ssize_t BufferStream::write(const char* buf, size_t size)
 {
 	size_t n = data_.size();
 	data_.push_back(buf, size);
@@ -71,7 +71,16 @@ ssize_t BufferStream::write(int fd, size_t size)
 	return n;
 }
 
-ssize_t BufferStream::read(void* buf, size_t size)
+ssize_t BufferStream::read(Buffer& result, size_t size)
+{
+	size = std::min(size, this->size());
+	result.reserve(result.size() + size);
+	result.push_back(data() + readOffset(), size);
+	shift(size);
+	return size;
+}
+
+ssize_t BufferStream::read(char* buf, size_t size)
 {
 	ssize_t n = std::min(size, this->size());
 	memcpy(buf, data() + readOffset(), n);
