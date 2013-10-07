@@ -365,6 +365,9 @@ ssize_t Socket::write(FileStream* fs, size_t size, Mode mode)
 
 ssize_t Socket::write(Socket* socket, size_t size, Mode mode)
 {
+	// XXX Unfortunately no kernel support available
+	// splice() and sendfile() do both not work for socket-to-socket transfer
+
 	errno = ENOTSUP;
 	return -1;
 }

@@ -6,9 +6,6 @@ add_definitions(
 
 if(BUILD_TESTS)
 
-add_executable(cs cs.cpp)
-target_link_libraries(cs xio)
-
 add_executable(xiotest xiotest.cpp
 	Pipe-test.cpp
 	Buffer-test.cpp
