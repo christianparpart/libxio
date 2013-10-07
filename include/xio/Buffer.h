@@ -289,6 +289,8 @@ public:
 
 	MutableBuffer& vprintf(const char* fmt, va_list args);
 
+	MutableBuffer& printf(const char* fmt);
+
 	template<typename... Args>
 	MutableBuffer& printf(const char* fmt, Args... args);
 
@@ -1190,6 +1192,14 @@ inline MutableBuffer<ensure>& MutableBuffer<ensure>::vprintf(const char* fmt, va
 
 	return *this;
 }
+
+template<bool (*ensure)(void*, size_t)>
+inline MutableBuffer<ensure>& MutableBuffer<ensure>::printf(const char* fmt)
+{
+	push_back(fmt);
+	return *this;
+}
+
 template<bool (*ensure)(void*, size_t)>
 template<typename... Args>
 inline MutableBuffer<ensure>& MutableBuffer<ensure>::printf(const char* fmt, Args... args)
@@ -1208,7 +1218,7 @@ inline MutableBuffer<ensure>& MutableBuffer<ensure>::printf(const char* fmt, Arg
 			? buflen + 1      // glibc >= 2.1
 			: capacity_ * 2;  // glibc <= 2.0
 
-		if (!setCapacity(capacity_ + buflen)) {
+		if (!reserve(capacity_ + buflen)) {
 			// increasing capacity failed
 			data_[capacity_ - 1] = '\0';
 			break; // alloc failure

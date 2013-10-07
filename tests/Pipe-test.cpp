@@ -8,10 +8,11 @@
 
 #include <gtest/gtest.h>
 #include <xio/Pipe.h>
+#include <fcntl.h>
 
 using namespace xio;
 
-TEST(PipeTest, Empty)
+TEST(Pipe, Empty)
 {
 	Pipe pp;
 	ASSERT_TRUE(pp.empty());
@@ -19,7 +20,7 @@ TEST(PipeTest, Empty)
 	ASSERT_EQ(0, pp.size());
 }
 
-TEST(PipeTest, Pass)
+TEST(Pipe, Pass)
 {
 	std::string msg("Hello");
 	Pipe pp;
@@ -36,3 +37,70 @@ TEST(PipeTest, Pass)
 	// size should be 0 after having read
 	ASSERT_EQ(0, pp.size());
 }
+
+TEST(Pipe, clear)
+{
+	char buf[4096] = {0};
+	Pipe p;
+	ssize_t n;
+
+	n = p.write(buf, sizeof(buf));
+	ASSERT_EQ(sizeof(buf), n);
+	ASSERT_EQ(sizeof(buf), p.size());
+
+	n = p.write(buf, sizeof(buf));
+	ASSERT_EQ(sizeof(buf), n);
+	ASSERT_EQ(sizeof(buf) * 2, p.size());
+
+	p.clear();
+
+	ASSERT_EQ(0, p.size());
+}
+
+TEST(Pipe, WritePipeMOVE)
+{
+	Pipe a(O_NONBLOCK);
+	Pipe b(O_NONBLOCK);
+	ssize_t n;
+	char buf[10];
+
+	a.write("foo", 3);
+	n = b.write(&a, a.size(), Stream::MOVE);
+	ASSERT_EQ(3, n);
+	ASSERT_EQ(0, a.size());
+	ASSERT_EQ(3, b.size());
+
+	n = a.read(buf, 3);
+	ASSERT_EQ(-1, n);
+	ASSERT_EQ(EAGAIN, errno);
+
+	n = b.read(buf, 3);
+	ASSERT_EQ(3, n);
+	buf[n] = '\0';
+	ASSERT_EQ(std::string("foo"), buf);
+}
+
+TEST(Pipe, WritePipeCOPY)
+{
+	Pipe a(O_NONBLOCK);
+	Pipe b(O_NONBLOCK);
+	ssize_t n;
+	char buf[10];
+
+	a.write("foo", 3);
+	n = b.write(&a, a.size(), Stream::COPY);
+	ASSERT_EQ(3, n);
+	ASSERT_EQ(3, a.size());
+	ASSERT_EQ(3, b.size());
+
+	n = a.read(buf, 3);
+	ASSERT_EQ(3, n);
+	buf[n] = '\0';
+	ASSERT_EQ(std::string("foo"), buf);
+
+	n = b.read(buf, 3);
+	ASSERT_EQ(3, n);
+	buf[n] = '\0';
+	ASSERT_EQ(std::string("foo"), buf);
+}
+

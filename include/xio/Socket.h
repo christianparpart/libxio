@@ -62,14 +62,12 @@ public:
 	virtual ssize_t read(Socket* socket, size_t size);
 	virtual ssize_t read(Pipe* pipe, size_t size);
 	virtual ssize_t read(int fd, size_t size);
-	virtual ssize_t read(int fd, off_t *fd_off, size_t size);
 	virtual int read();
 
 	using Stream::write;
 	virtual ssize_t write(const void* buf, size_t size);
-	virtual ssize_t write(Socket* socket, size_t size, Mode mode = Stream::MOVE);
+	virtual ssize_t write(Socket* socket, size_t size, Mode mode = Stream::COPY);
 	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode = Stream::MOVE);
-	virtual ssize_t write(int fd, off_t *fd_off, size_t size);
 	virtual ssize_t write(int fd, size_t size);
 
 	virtual void accept(StreamVisitor&);

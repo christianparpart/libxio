@@ -1,3 +1,7 @@
+# TODO
+
+- I/O filter example (upper/lower case, compress/uncompress)
+- chunked stream example
 
 # Stackoverflow question
 

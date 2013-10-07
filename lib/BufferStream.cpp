@@ -71,21 +71,6 @@ ssize_t BufferStream::write(int fd, size_t size)
 	return n;
 }
 
-ssize_t BufferStream::write(int fd, off_t *fd_off, size_t size)
-{
-	data_.reserve(data_.size() + size);
-
-	ssize_t n = std::min(capacity() - writeOffset(), size);
-	n = fd_off
-		? ::pread(fd, rwdata() + writeOffset(), n, *fd_off)
-		: ::read(fd, rwdata() + writeOffset(), n);
-
-	if (n > 0)
-		data_.resize(data_.size() + n);
-
-	return n;
-}
-
 ssize_t BufferStream::read(void* buf, size_t size)
 {
 	ssize_t n = std::min(size, this->size());
@@ -114,19 +99,6 @@ ssize_t BufferStream::read(Pipe* pipe, size_t size)
 ssize_t BufferStream::read(int fd, size_t size)
 {
 	ssize_t n = ::write(fd, data(), std::min(this->size(), size));
-	if (n > 0) {
-		readOffset_ += n;
-	}
-
-	return n;
-}
-
-ssize_t BufferStream::read(int fd, off_t *fd_off, size_t size)
-{
-	ssize_t n = fd_off 
-		? ::pwrite(fd, data(), std::min(this->size(), size), *fd_off)
-		: ::write(fd, data(), std::min(this->size(), size));
-
 	if (n > 0) {
 		readOffset_ += n;
 	}

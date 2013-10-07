@@ -44,11 +44,6 @@ ssize_t FileStream::read(int fd, size_t size)
 	return -1; // TODO
 }
 
-ssize_t FileStream::read(int fd, off_t *fd_off, size_t size)
-{
-	return -1; // TODO
-}
-
 int FileStream::read()
 {
 	return -1; // TODO
@@ -65,11 +60,6 @@ ssize_t FileStream::write(Socket* socket, size_t size, Mode mode)
 }
 
 ssize_t FileStream::write(Pipe* pipe, size_t size, Mode mode)
-{
-	return -1; // TODO
-}
-
-ssize_t FileStream::write(int fd, off_t *fd_off, size_t size)
 {
 	return -1; // TODO
 }

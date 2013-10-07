@@ -237,16 +237,38 @@ void ServerSocket::accept(ev::io&, int)
 {
 #if defined(WITH_MULTI_ACCEPT)
 	for (size_t n = multiAcceptCount_; n > 0; --n) {
-		if (!acceptOne()) {
+		if (!handleOne()) {
 			break;
 		}
 	}
 #else
-	acceptOne();
+	handleOne();
 #endif
 }
 
-inline bool ServerSocket::acceptOne()
+bool ServerSocket::handleOne()
+{
+	Socket* client = acceptOne();
+	if (client) {
+		callback(client, this);
+		return true;
+	}
+
+	switch (errno) {
+		case EINTR:
+		case EAGAIN:
+#if EAGAIN != EWOULDBLOCK
+		case EWOULDBLOCK:
+#endif
+			break;
+		default:
+			callback(nullptr, this);
+			break;
+	}
+	return false;
+}
+
+Socket* ServerSocket::acceptOne()
 {
 #if defined(HAVE_ACCEPT4) && defined(WITH_ACCEPT4)
 	bool flagged = true;
@@ -260,36 +282,17 @@ inline bool ServerSocket::acceptOne()
 	int cfd = ::accept(fd_, nullptr, 0);
 #endif
 
-	if (cfd < 0) {
-		switch (errno) {
-		case EINTR:
-		case EAGAIN:
-#if EAGAIN != EWOULDBLOCK
-		case EWOULDBLOCK:
-#endif
-			goto out;
-		default:
-			goto err;
-		}
+	if (cfd < 0)
+		return nullptr;
+
+	if (!flagged && flags_ && fcntl(cfd, F_SETFL, fcntl(cfd, F_GETFL) | flags_) < 0) {
+		::close(cfd);
+		return nullptr;
 	}
 
-	if (!flagged && flags_ && fcntl(cfd, F_SETFL, fcntl(cfd, F_GETFL) | flags_) < 0)
-		goto err;
+	TRACE("acceptOne(): %d", cfd);
 
-	TRACE("accept(): %d", cfd);
-
-	callback(createSocket(cfd), this);
-
-	return true;
-
-err:
-	// notify callback about the error on accept()
-	::close(cfd);
-	callback(nullptr, this);
-
-out:
-	// abort the outer loop
-	return false;
+	return createSocket(cfd);
 }
 
 /** enables/disables CLOEXEC-flag on the server listener socket.

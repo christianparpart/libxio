@@ -12,7 +12,7 @@ public:
 	explicit InetServer(struct ev_loop* loop);
 	~InetServer();
 
-	bool open(const IPAddress& ipAddress, int port, int flags);
+	bool open(const IPAddress& ipAddress, int port, int flags = 0);
 
 	bool bind(const IPAddress& ipaddr, int port);
 

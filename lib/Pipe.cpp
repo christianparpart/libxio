@@ -45,12 +45,12 @@ size_t Pipe::size() const
 void Pipe::clear()
 {
 	char buf[4096];
-	ssize_t rv;
-
-	do rv = ::read(readFd(), buf, sizeof(buf));
-	while (rv > 0);
-
-	size_ = 0;
+	while (size_ > 0) {
+		ssize_t rv = ::read(readFd(), buf, std::min(size_, sizeof(buf)));
+		if (rv > 0) {
+			size_ -= rv;
+		}
+	}
 }
 
 ssize_t Pipe::write(const void* buf, size_t size)
@@ -70,29 +70,30 @@ ssize_t Pipe::write(Socket* socket, size_t size, Mode mode)
 
 ssize_t Pipe::write(Pipe* pipe, size_t size, Mode mode)
 {
-	ssize_t rv = splice(pipe->readFd(), NULL, writeFd(), NULL, pipe->size_, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
-
-	if (rv > 0) {
-		pipe->size_ -= rv;
-		size_ += rv;
+	if (mode == MOVE) {
+		ssize_t rv = splice(pipe->readFd(), NULL, writeFd(), NULL, pipe->size_, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
+		if (rv > 0) {
+			pipe->size_ -= rv;
+			size_ += rv;
+		}
+		return rv;
+	} else {
+		ssize_t rv = tee(pipe->readFd(), writeFd(), size, SPLICE_F_NONBLOCK);
+		if (rv > 0) {
+			size_ += rv;
+		}
+		return rv;
 	}
-
-	return rv;
 }
 
-ssize_t Pipe::write(int fd, off_t* fd_off, size_t size)
+ssize_t Pipe::write(int fd, size_t size)
 {
-	ssize_t rv = splice(fd, fd_off, writeFd(), NULL, size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
+	ssize_t rv = splice(fd, NULL, writeFd(), NULL, size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
 
 	if (rv > 0)
 		size_ += rv;
 
 	return rv;
-}
-
-ssize_t Pipe::write(int fd, size_t size)
-{
-	return write(fd, NULL, size);
 }
 
 ssize_t Pipe::read(void* buf, size_t size)
@@ -115,19 +116,14 @@ ssize_t Pipe::read(Pipe* pipe, size_t size)
 	return pipe->write(this, size);
 }
 
-ssize_t Pipe::read(int fd, off_t* fd_off, size_t size)
+ssize_t Pipe::read(int fd, size_t size)
 {
-	ssize_t rv = splice(readFd(), fd_off, fd, NULL, size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
+	ssize_t rv = splice(readFd(), NULL, fd, NULL, size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK);
 
 	if (rv > 0)
 		size_ -= rv;
 
 	return rv;
-}
-
-ssize_t Pipe::read(int fd, size_t size)
-{
-	return read(fd, NULL, size);
 }
 
 int Pipe::read()

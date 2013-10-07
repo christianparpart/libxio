@@ -310,11 +310,6 @@ ssize_t Socket::read(int fd, size_t size)
 	return 0;
 }
 
-ssize_t Socket::read(int fd, off_t *fd_off, size_t size)
-{
-	return 0;
-}
-
 int Socket::read()
 {
 	char ch = -1;
@@ -331,21 +326,17 @@ ssize_t Socket::write(const void* buf, size_t size)
 
 ssize_t Socket::write(Socket* socket, size_t size, Mode mode)
 {
-	return 0;
+	errno = ENOTSUP;
+	return -1;
 }
 
 ssize_t Socket::write(Pipe* pipe, size_t size, Mode mode)
 {
-	return splice(
-		pipe->readFd(), nullptr,
-		fd_, nullptr,
-		size, SPLICE_F_MOVE | SPLICE_F_NONBLOCK | SPLICE_F_MORE
-	);
-}
+	const int flags = mode == Stream::MOVE
+		? SPLICE_F_NONBLOCK | SPLICE_F_MORE | SPLICE_F_MOVE
+		: SPLICE_F_NONBLOCK | SPLICE_F_MORE;
 
-ssize_t Socket::write(int fd, off_t *fd_off, size_t size)
-{
-	return 0;
+	return splice(pipe->readFd(), nullptr, fd_, nullptr, size, flags);
 }
 
 ssize_t Socket::write(int fd, size_t size)

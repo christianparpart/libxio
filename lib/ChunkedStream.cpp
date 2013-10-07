@@ -42,7 +42,7 @@ ssize_t ChunkedStream::write(Pipe* pp, size_t size, Mode mode)
 {
 	if (mode == Stream::MOVE) {
 		if (auto chunk = pipe(size)) {
-			return chunk->write(pp, size);
+			return chunk->write(pp, size, mode);
 		}
 	}
 
@@ -61,17 +61,27 @@ ssize_t ChunkedStream::write(int fd, size_t size)
 	return -1;
 }
 
-ssize_t ChunkedStream::write(int fd, off_t *fd_off, size_t size)
-{
-	if (auto chunk = buffer(size))
-		return chunk->write(fd, fd_off, size);
-
-	return -1;
-}
-
 ssize_t ChunkedStream::read(void* buf, size_t size)
 {
-	return 0; // TODO
+	ssize_t result = 0;
+	while (!empty() && size > 0) {
+		auto chunk = chunks_.front();
+		auto n = chunk->read(buf, size);
+
+		if (n < 0)
+			return result ? result : -1;
+
+		if (n > 0) {
+			result += n;
+			size -= n;
+		}
+
+		if (chunk->size() == 0) {
+			chunks_.pop_front();
+			delete chunk;
+		}
+	}
+	return result;
 }
 
 ssize_t ChunkedStream::read(Socket* socket, size_t size)
@@ -124,11 +134,6 @@ ssize_t ChunkedStream::read(int fd, size_t size)
 	}
 
 	return result;
-}
-
-ssize_t ChunkedStream::read(int fd, off_t *fd_off, size_t size)
-{
-	return 0; // TODO
 }
 
 int ChunkedStream::read()

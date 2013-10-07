@@ -103,11 +103,6 @@ ssize_t FilterStream::read(int fd, size_t size)
 	return 0;
 }
 
-ssize_t FilterStream::read(int fd, off_t *fd_off, size_t size)
-{
-	return 0;
-}
-
 int FilterStream::read()
 {
 	return 0;
@@ -124,11 +119,6 @@ ssize_t FilterStream::write(Socket* socket, size_t size, Mode mode)
 }
 
 ssize_t FilterStream::write(Pipe* pipe, size_t size, Mode mode)
-{
-	return 0;
-}
-
-ssize_t FilterStream::write(int fd, off_t *fd_off, size_t size)
 {
 	return 0;
 }

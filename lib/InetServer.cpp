@@ -227,11 +227,15 @@ bool InetServer::open(const IPAddress& ipaddr, int port, int flags)
 	// TODO so_linger(false, 0)
 	// TODO so_keepalive(true)
 
-	if (!bind(ipaddr, port))
+	if (!bind(ipaddr, port)) {
+		perror("bind");
 		goto syserr;
+	}
 
-	if (!listen(backlog_))
+	if (!listen(backlog_)) {
+		perror("listen");
 		goto syserr;
+	}
 
 	goto done;
 

@@ -63,6 +63,9 @@ public:
 	virtual void stop();
 	virtual void close();
 
+	Socket* acceptOne();
+	bool handleOne();
+
 	std::function<void(Socket*, ServerSocket*)> callback;
 
 private:
@@ -72,7 +75,6 @@ private:
 	void accept(ev::io&, int);
 
 protected:
-	virtual bool acceptOne();
 	virtual Socket* createSocket(int cfd) = 0;
 
 	int setOption(int level, int option, int value);

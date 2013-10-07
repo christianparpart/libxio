@@ -30,7 +30,6 @@ public:
 	virtual ssize_t write(const void* buf, size_t size);
 	virtual ssize_t write(Socket* socket, size_t size, Mode mode);
 	virtual ssize_t write(Pipe* pipe, size_t size, Mode mode);
-	virtual ssize_t write(int fd, off_t *fd_off, size_t size);
 	virtual ssize_t write(int fd, size_t size);
 
 	// read from pipe
@@ -38,7 +37,6 @@ public:
 	virtual ssize_t read(Socket* socket, size_t size);
 	virtual ssize_t read(Pipe* socket, size_t size);
 	virtual ssize_t read(int fd, size_t size);
-	virtual ssize_t read(int fd, off_t *fd_off, size_t size);
 	virtual int read();
 
 	virtual void accept(StreamVisitor&);
