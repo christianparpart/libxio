@@ -14,36 +14,6 @@ const char* bindaddr = "0.0.0.0";
 const char* ipaddr = "127.0.0.1";
 int port = 8089;
 
-/**
- * Receive data from one client, connect to the server, and transfers the client's read data
- * directly to the server <b>without</b> userspace copying.
- */
-void* proxy_run(void* p)
-{
-	Socket* cs = (Socket*) p;
-	ev::loop_ref loop = ev::dynamic_loop();
-
-	Socket client(loop);
-	if (!client.open(IPAddress(ipaddr), port))
-		perror("proxy: open");
-
-	Pipe pipe;
-	for (;;) {
-		ssize_t n = cs->read(&pipe, 1024);
-		if (n < 0) {
-			perror("proxy.write");
-			break;
-		} else if (n == 0) {
-			break; // original client disconnected
-		} else {
-			client.write(&pipe, pipe.size());
-		}
-	}
-	delete cs;
-
-	return NULL;
-}
-
 void* client_run(void*)
 {
 	ev::loop_ref loop = ev::dynamic_loop();
@@ -56,12 +26,39 @@ void* client_run(void*)
 	buf.printf("\r\n");
 
 	Socket client(loop);
-	if (!client.open(IPAddress(ipaddr), port))
+	if (client.open(IPAddress(ipaddr), port)) {
+		client.write(buf.data(), buf.size());
+		client.write(fs.get(),  fs->size());
+	} else {
 		perror("client: open");
+	}
 
-	client.write(buf.data(), buf.size());
-	client.write(fs.get(),  fs->size());
+	return NULL;
+}
 
+/**
+ * Receive data from one client, connect a backend, and transfers client's data
+ * directly to the backend server <b>without</b> userspace copying.
+ */
+void* proxy_run(void* p)
+{
+	Socket* client = (Socket*) p;
+	ev::loop_ref loop = ev::dynamic_loop();
+
+	Socket backend(loop);
+	if (!backend.open(IPAddress(ipaddr), port))
+		perror("proxy: open");
+
+	Pipe pipe;
+	for (;;) {
+		if (client->read(&pipe, 1024) > 0) {
+			backend.write(&pipe, pipe.size());
+		} else {
+			break;
+		}
+	}
+
+	delete client;
 	return NULL;
 }
 
@@ -81,13 +78,14 @@ int main(int argc, const char* argv[])
 	server.open(IPAddress(bindaddr), port);
 	if (!server.isOpen()) {
 		perror("server.open()");
+		return 1;
 	}
 
 	pthread_t client_thread;
 	int rv = pthread_create(&client_thread, NULL, client_run, NULL);
 	if (rv < 0) {
 		perror("pthread_create");
-		exit(1);
+		return 1;
 	}
 
 	pthread_t proxy_thread;
@@ -99,8 +97,10 @@ int main(int argc, const char* argv[])
 		}
 
 		if (i == 0) {
+			// first client gets proxied
 			pthread_create(&proxy_thread, NULL, proxy_run, cs);
 		} else {
+			// second client gets dumped to terminal (partly reading into buf, remaining data via pipe)
 			ssize_t n = cs->read(buf, 39);
 			write(STDOUT_FILENO, buf.data(), buf.size());
 			buf.clear();
@@ -110,7 +110,7 @@ int main(int argc, const char* argv[])
 				n = cs->read(&pipe, 1024);
 				pipe.read(STDOUT_FILENO, pipe.size());
 			} while (n > 0);
-			//cs->read(chunkedBuffer, Stream::MOVE);
+			// TODO: cs->read(chunkedBuffer, Stream::MOVE);
 			delete cs;
 		}
 	}
