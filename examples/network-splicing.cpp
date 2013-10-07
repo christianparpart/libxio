@@ -71,8 +71,6 @@ int main(int argc, const char* argv[])
 	}
 
 	ev::loop_ref loop = ev::default_loop(0);
-	Buffer buf;
-	buf.reserve(32 * 1024);
 
 	InetServer server(loop);
 	server.open(IPAddress(bindaddr), port);
@@ -101,15 +99,18 @@ int main(int argc, const char* argv[])
 			pthread_create(&proxy_thread, NULL, proxy_run, cs);
 		} else {
 			// second client gets dumped to terminal (partly reading into buf, remaining data via pipe)
-			ssize_t n = cs->read(buf, 39);
+			Buffer buf;
+			cs->read(buf, 39);
 			write(STDOUT_FILENO, buf.data(), buf.size());
-			buf.clear();
 
 			Pipe pipe;
-			do {
-				n = cs->read(&pipe, 1024);
-				pipe.read(STDOUT_FILENO, pipe.size());
-			} while (n > 0);
+			for (;;) {
+				if (cs->read(&pipe, 1024) > 0) {
+					pipe.read(STDOUT_FILENO, pipe.size());
+				} else {
+					break;
+				}
+			}
 			// TODO: cs->read(chunkedBuffer, Stream::MOVE);
 			delete cs;
 		}
