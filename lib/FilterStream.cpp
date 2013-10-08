@@ -12,8 +12,10 @@ FilterStream::FilterStream(std::unique_ptr<Stream> parent) :
 
 FilterStream::FilterStream(Stream* parent, std::unique_ptr<Filter> filter) :
 	parent_(std::move(parent)),
-	buffer_(),
-	pos_(0),
+	inputBuffer_(),
+	inputPos_(0),
+	outputBuffer_(),
+	outputPos_(0),
 	filters()
 {
 	filters.push_back(std::move(filter));
@@ -66,24 +68,36 @@ size_t FilterStream::size() const
 
 ssize_t FilterStream::pull(size_t size)
 {
-	if (buffer_.size() - pos_ >= size)
+	if (inputBuffer_.size() - inputPos_ >= size)
 		return size;
 
-	buffer_.reserve(buffer_.size() + size);
+	inputBuffer_.reserve(inputBuffer_.size() + size);
 
-	ssize_t rv = parent_->read(buffer_ /*, size*/);
+	ssize_t rv = parent_->read(inputBuffer_, size);
 
 	return rv != -1
-		? buffer_.size() - pos_ + rv
+		? inputBuffer_.size() - inputPos_ + rv
 		: -1;
 }
 
-ssize_t FilterStream::read(void* buf, size_t size)
+ssize_t FilterStream::read(Buffer& result, size_t size)
+{
+	pull(size);
+
+	process(inputBuffer_.ref(inputPos_), outputBuffer_);
+
+	size = std::min(size, outputBuffer_.size() - outputPos_);
+
+	size_t lsize = result.size();
+	result.push_back(outputBuffer_.data() + outputPos_, size);
+	return lsize - result.size();
+}
+
+ssize_t FilterStream::read(char* buf, size_t size)
 {
 	size = pull(size);
 
-	Buffer out(size);
-	process(out.ref(), out);
+	process(inputBuffer_.ref(inputPos_), outputBuffer_);
 
 	return size;
 }
@@ -108,7 +122,7 @@ int FilterStream::read()
 	return 0;
 }
 
-ssize_t FilterStream::write(const void* buf, size_t size)
+ssize_t FilterStream::write(const char* buf, size_t size)
 {
 	return 0;
 }
